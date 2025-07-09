@@ -68,7 +68,7 @@ LIBC_INLINE_VAR constexpr MsgTable<76> POSIX_ERRORS = {
     MsgMapping(EOVERFLOW, "Value too large for data type"),
 #else
     MsgMapping(EOVERFLOW, "Value too large for defined data type"),
-#endif
+#endif    
     MsgMapping(ENOTSOCK, "Socket operation on non-socket"),
     MsgMapping(EDESTADDRREQ, "Destination address required"),
     MsgMapping(EMSGSIZE, "Message too long"),
