@@ -1024,6 +1024,7 @@ class llvmlibc(DebugLibrary, AsanInstrumentedLibrary, MTLibrary):
 
 
 class libc(MuslInternalLibrary,
+           libcompiler_rt,
            DebugLibrary,
            AsanInstrumentedLibrary,
            MTLibrary):
@@ -1136,7 +1137,7 @@ class libc(MuslInternalLibrary,
     # musl modules
     ignore = [
         'ipc', 'passwd', 'signal', 'sched', 'time', 'linux',
-        'aio', 'exit', 'legacy', 'mq', 'setjmp',
+        'aio', 'exit', 'legacy', 'mq',
         'ldso', 'malloc',
     ]
 
@@ -1365,6 +1366,7 @@ class libc(MuslInternalLibrary,
         filenames=['thread_profiler.c'])
 
     libc_files += glob_in_path('system/lib/libc/compat', '*.c')
+    libc_files += glob_in_path('system/lib/libc/musl/setjmp', '*.c')
 
     # Check for missing file in non_lto_files list.  Do this here
     # rather than in the constructor so it only happens when the
@@ -2340,6 +2342,7 @@ def get_libs_to_link(options):
         add_library('crt1_proxy_main')
 
   if settings.SIDE_MODULE:
+    print("returning 1")
     return libs_to_link
 
   # We add the forced libs last so that any libraries that are added in the normal
