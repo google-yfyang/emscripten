@@ -16,20 +16,23 @@
 
 // Generic instruction specializations with __builtin_elementwise_sqrt.
 #if defined(LIBC_TARGET_CPU_HAS_FPU_FLOAT) ||                                  \
-    defined(LIBC_TARGET_CPU_HAS_FPU_DOUBLE)
+    defined(LIBC_TARGET_CPU_HAS_FPU_DOUBLE) ||  \
+    defined(__EMSCRIPTEN__)
 
 #if __has_builtin(__builtin_elementwise_sqrt)
 
 namespace LIBC_NAMESPACE_DECL {
 namespace fputil {
 
-#ifdef LIBC_TARGET_CPU_HAS_FPU_FLOAT
+#if    defined(LIBC_TARGET_CPU_HAS_FPU_FLOAT) || \
+       defined(__EMSCRIPTEN__)
 template <> LIBC_INLINE float sqrt<float>(float x) {
   return __builtin_elementwise_sqrt(x);
 }
 #endif // LIBC_TARGET_CPU_HAS_FPU_FLOAT
 
-#ifdef LIBC_TARGET_CPU_HAS_FPU_DOUBLE
+#if    defined(LIBC_TARGET_CPU_HAS_FPU_DOUBLE) || \
+       defined(__EMSCRIPTEN__)
 template <> LIBC_INLINE double sqrt<double>(double x) {
   return __builtin_elementwise_sqrt(x);
 }

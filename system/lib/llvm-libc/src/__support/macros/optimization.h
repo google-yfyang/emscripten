@@ -38,7 +38,6 @@ LIBC_INLINE constexpr bool expects_bool_condition(T value, T expected) {
 
 // Defining optimization options for math functions.
 // TODO: Exporting this to public generated headers?
-#define LIBC_MATH_SKIP_ACCURATE_PASS 0x01
 #define LIBC_MATH_SMALL_TABLES 0x02
 #define LIBC_MATH_NO_ERRNO 0x04
 #define LIBC_MATH_NO_EXCEPT 0x08

@@ -17,6 +17,7 @@ LLVM_LIBC_FUNCTION(float, floorf, (float x)) {
 #ifdef __LIBC_USE_BUILTIN_CEIL_FLOOR_RINT_TRUNC
   return __builtin_floorf(x);
 #else
+  #error
   return fputil::floor(x);
 #endif
 }

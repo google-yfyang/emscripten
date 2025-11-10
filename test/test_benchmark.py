@@ -12,6 +12,7 @@ import sys
 import time
 import unittest
 import zlib
+import glob
 from pathlib import Path
 
 if __name__ == '__main__':
@@ -55,6 +56,8 @@ LLVM_FEATURE_FLAGS = ['-mnontrapping-fptoint']
 # A comma separated list of benchmarkers to run during test_benchmark tests. See
 # `named_benchmarkers` for what is available.
 EMTEST_BENCHMARKERS = os.getenv('EMTEST_BENCHMARKERS', 'clang,v8,v8-lto,v8-ctors')
+ 
+MATH_BENCHMARKS=glob.glob(str(Path(__file__).parent) + '/benchmark/math/*.cpp')
 
 
 class Benchmarker:
@@ -277,9 +280,9 @@ class EmscriptenBenchmarker(Benchmarker):
 class SizeBenchmarker(EmscriptenBenchmarker):
   record_stats = True
 
-  def __init__(self, name):
+  def __init__(self, name, extra_args=None):
     # do not set an engine, as we will not run the code
-    super().__init__(name, engine=None)
+    super().__init__(name, engine=None, extra_args=extra_args)
 
   # we will not actually run the benchmarks
   run = None
@@ -361,9 +364,12 @@ aot_v8 = (config.V8_ENGINE if config.V8_ENGINE else []) + ['--no-liftoff']
 
 named_benchmarkers = {
   'clang': NativeBenchmarker('clang', [CLANG_CC], [CLANG_CXX]),
+  'clang_llvmlibc': NativeBenchmarker('clang', [CLANG_CC, '-lllvmlibc'], [CLANG_CXX]),
   'gcc': NativeBenchmarker('gcc',   ['gcc', '-no-pie'],  ['g++', '-no-pie']),
-  'size': SizeBenchmarker('size'),
-  'v8': EmscriptenBenchmarker('v8', aot_v8),
+  'size': SizeBenchmarker('size', ['-Wl,-Map=/tmp/baseline_map.txt']),
+  'size_llvmlibc': SizeBenchmarker('size_llvmlibc', ['-lllvmlibc', '-Wl,-Map=/tmp/llvmlibc_map.txt', '-DLIBC_MATH_SKIP_ACCURATE_PASS']),
+  'v8': EmscriptenBenchmarker('v8', aot_v8, ['-g2']),
+  'v8_llvmlibc': EmscriptenBenchmarker('v8_llvmlibc', aot_v8, ['-g2','-lllvmlibc', '-D__LIBC_USE_BUILTIN_ROUND', '-D__LIBC_USE_BUILTIN_CEIL_FLOOR_RINT_TRUNC']),
   'v8-lto': EmscriptenBenchmarker('v8-lto', aot_v8, ['-flto']),
   'v8-ctors': EmscriptenBenchmarker('v8-ctors', aot_v8, ['-sEVAL_CTORS']),
   'v8-64': EmscriptenBenchmarker('v8-64', aot_v8, ['-sMEMORY64=2']),
@@ -977,6 +983,13 @@ class benchmark(common.RunnerCore):
       return float(re.search(r'Total elapsed: ([\d\.]+)', output).group(1))
     self.do_benchmark('matrix_multiply', read_file(test_file('matrix_multiply.cpp')), 'Total elapsed:', output_parser=output_parser, shared_args=['-I' + test_file('benchmark')])
 
+  def test_math_benchmark(self):
+    def output_parser(output):
+      return float(re.search(r'Total time\s+: ([\d\.]+)', output).group(1))
+    for benchmark in MATH_BENCHMARKS:
+      print("\nRunning Math Benchmark: \n", benchmark)
+      self.do_benchmark('math_benchmark', read_file(test_file(benchmark)), 'Total time', output_parser = output_parser, shared_args=['-I' + test_file('benchmark'), '-I' + '/usr/local/google/home/yfyang/emscripten/system/lib/llvm-libc', '-DLIBC_NAMESPACE=__llvm_libc'])
+#'-DLIBC_MATH=LIBC_MATH_FAST'
   def lua(self, benchmark, expected, output_parser=None, args_processor=None):
     self.cflags.remove('-Werror')
     shutil.copyfile(test_file(f'third_party/lua/{benchmark}.lua'), benchmark + '.lua')
