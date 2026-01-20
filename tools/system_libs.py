@@ -1008,8 +1008,23 @@ class llvmlibc(DebugLibrary, AsanInstrumentedLibrary, MTLibrary):
   name = 'libllvmlibc'
   never_force = True
   includes = ['system/lib/llvm-libc']
-  cflags = ['-Os', '-DLIBC_NAMESPACE=__llvm_libc', '-DLLVM_LIBC', '-DLIBC_COPT_PUBLIC_PACKAGING', '-DLIBC_MATH=LIBC_MATH_FAST', '-DLIBC_MATH_SKIP_ACCURATE_PASS', '-D__LIBC_USE_BUILTIN_CEIL_FLOOR_RINT_TRUNC', '-mrelaxed-simd', '-ffast-math', '-Wno-nan-infinity-disabled']
-#'-DLIBC_MATH_SKIP_ACCURATE_PASS', 
+  cflags = [
+      "-Os",
+      "-DLIBC_NAMESPACE=__llvm_libc",
+      "-DLLVM_LIBC",
+      "-DLIBC_COPT_PUBLIC_PACKAGING",
+      # Disable accurate pass to speed up certain math operations
+      "-DLIBC_MATH=LIBC_MATH_FAST",
+      "-DLIBC_MATH_SKIP_ACCURATE_PASS",
+      "-D__LIBC_USE_BUILTIN_CEIL_FLOOR_RINT_TRUNC",
+      # Reduce size bloats from string conversions.
+      "-DLIBC_COPT_STRTOFLOAT_DISABLE_EISEL_LEMIRE",
+      # Enable FMA
+      "-Wno-unused-variable",
+      "-mrelaxed-simd",
+      "-ffast-math",
+  ]
+
   def get_files(self):
     files = glob_in_path('system/lib/llvm-libc/src/assert', '*.cpp')
     files += glob_in_path('system/lib/llvm-libc/src/complex', '**/*.cpp')
